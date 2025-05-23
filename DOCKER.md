@@ -9,7 +9,7 @@ This Django application uses an optimized multi-stage Docker build designed for 
 - **WSGI Server**: Gunicorn with 2 workers
 - **Static Files**: WhiteNoise (no external web server required)
 - **Security**: Non-root user execution
-- **Final Image Size**: ~288MB (optimized for production)
+- **Final Image Size**: ~308MB (optimized for production)
 - **Build Architecture**: Multi-stage build for minimal production footprint
 
 ## 🚀 Quick Start
