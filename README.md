@@ -207,7 +207,7 @@ Every commit automatically runs:
 
 ### Image Details
 - **Base**: Alpine Linux (lightweight)
-- **Size**: ~288MB (optimized multi-stage build)
+- **Size**: ~308MB (optimized multi-stage build)
 - **Security**: Non-root user, minimal packages
 - **Performance**: 2 Gunicorn workers, optimized caching
 
