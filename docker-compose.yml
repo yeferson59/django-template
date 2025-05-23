@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      target: builder
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=app.settings
+      - DEBUG=true
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .:/app
+    command: uv run python manage.py runserver 0.0.0.0:8000
+
+  web-prod:
+    build: .
+    ports:
+      - "8001:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=app.settings_prod
+      - DEBUG=false
+      - PYTHONUNBUFFERED=1
+      - SECRET_KEY=your-production-secret-key-here-change-this
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+    restart: unless-stopped
+
+  web-staging:
+    build: .
+    ports:
+      - "8002:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=app.settings_prod
+      - DEBUG=false
+      - PYTHONUNBUFFERED=1
+      - SECRET_KEY=your-staging-secret-key-here-change-this
+      - ALLOWED_HOSTS=staging.yourdomain.com,localhost
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=mydatabase
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
