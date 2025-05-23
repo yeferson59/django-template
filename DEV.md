@@ -4,116 +4,163 @@
 
 ### Initial Setup
 ```bash
-# Clone and setup
+# Clone and setup project
 git clone <your-repo>
 cd my-app
 
-# Install development dependencies
+# Automated setup (recommended)
+./setup.sh
+
+# Manual setup
 make install-dev
-
-# Setup development environment
 make dev-setup
-
-# Start development server
 make runserver
 ```
 
-## 🛠️ Development Tools
+### First Steps After Setup
+```bash
+# Create superuser for Django admin
+make createsuperuser
+
+# Run development server
+make runserver
+
+# Access application
+# http://localhost:8000 - Main application
+# http://localhost:8000/admin - Django admin interface
+```
+
+## 🛠️ Development Tools & Dependencies
 
 ### Package Management with UV
 ```bash
-# Install production dependencies
+# Install production dependencies only
 uv sync
 
 # Install with development dependencies
 uv sync --group dev
 
-# Add new dependency
+# Add new production dependency
 uv add package-name
 
 # Add development dependency
 uv add --group dev package-name
 
-# Update dependencies
+# Update all dependencies
 uv sync --upgrade
+
+# Lock dependencies
+uv lock
 ```
 
-### Code Quality Tools
+### Development Dependencies (Included)
+- **Code Quality**: black, isort, flake8, mypy, pre-commit
+- **Testing**: pytest, pytest-django, pytest-cov, factory-boy
+- **Development**: django-debug-toolbar, django-extensions, ipython
+- **Type Checking**: mypy, django-stubs
+- **Environment**: python-dotenv
 
-#### Formatting
+### Production Dependencies
+- **Framework**: django, gunicorn, whitenoise
+- **Database**: psycopg2-binary, dj-database-url (optional)
+- **Monitoring**: sentry-sdk[django] (optional)
+- **Caching**: redis, django-redis (optional)
+
+## 🔧 Automated Code Quality (Pre-commit Hooks)
+
+### What Runs Automatically on Every Commit
+✅ **Black**: Code formatting with 88-character lines
+✅ **isort**: Import sorting with Django-aware grouping
+✅ **flake8**: PEP 8 compliance and error detection
+✅ **mypy**: Type checking with Django stubs
+✅ **pytest**: Fast test execution
+✅ **Django checks**: System validation and migration checks
+✅ **File cleanup**: Trailing whitespace, end-of-file fixes
+
+### Pre-commit Commands
 ```bash
-# Format all code with Black and isort
+# Install hooks (done automatically by setup.sh)
+make pre-commit-install
+
+# Run hooks on all files manually
+make pre-commit-run
+
+# Update hook versions
+make pre-commit-update
+
+# Clean pre-commit cache
+make pre-commit-clean
+```
+
+### Manual Code Quality Commands
+```bash
+# Format code with Black and isort
 make format
 
-# Or individually
-uv run black .
-uv run isort .
-```
-
-#### Linting
-```bash
-# Run all linters
+# Run linting (flake8)
 make lint
 
-# Individual tools
-uv run flake8 .
-uv run pylint app/
-```
-
-#### Type Checking
-```bash
-# Run mypy type checking
+# Run type checking (mypy)
 make type-check
-```
 
-#### Complete Quality Check
-```bash
-# Run format, lint, type-check, and test
-make check
-```
-
-### Testing
-```bash
 # Run all tests
 make test
 
-# Run tests with coverage
+# Run tests with coverage report
 make test-cov
 
-# Run specific test file
-uv run pytest app/tests/test_models.py
+# Run all quality checks
+make check
+```
 
-# Run with verbose output
-uv run pytest -v
+## 🔄 Git Workflow with Automated Quality
+
+### Standard Development Flow
+```bash
+# 1. Make your changes
+vim app/views.py
+vim tests/test_views.py
+
+# 2. Add files to git staging
+git add .
+
+# 3. Commit (hooks run automatically)
+git commit -m "feat: add user authentication"
+
+# Pre-commit hooks automatically:
+# - Format code with Black and isort
+# - Check code quality with flake8
+# - Run type checking with mypy
+# - Execute fast tests
+# - Validate Django configuration
+# - Fix file formatting issues
+
+# 4. Push when hooks pass
+git push origin feature-branch
+```
+
+### If Pre-commit Hooks Fail
+```bash
+# Hooks will show what failed and fix what they can
+# Review the changes and commit again
+git add .
+git commit -m "feat: add user authentication"
+
+# For persistent issues, run manual checks
+make check
 ```
 
 ## 🐳 Docker Development
 
-### Development Environment
+### Development with Docker Compose
 ```bash
-# Build and run development container
+# Start development environment
 make docker-dev
-
-# Or using docker-compose directly
+# or
 docker-compose up web
-```
 
-### Production Testing
-```bash
-# Test production build locally
-make docker-prod
-
-# Build production image
-make docker-build
-```
-
-### Full Stack Development
-```bash
-# Start all services (web, db, redis)
+# Full stack (web + database + redis)
 docker-compose up
-
-# Start specific services
-docker-compose up web db
 
 # Run in background
 docker-compose up -d
@@ -121,46 +168,83 @@ docker-compose up -d
 # View logs
 docker-compose logs -f web
 
+# Execute commands in container
+docker-compose exec web python manage.py migrate
+docker-compose exec web python manage.py shell
+
 # Stop all services
 docker-compose down
 ```
+
+### Production Testing with Docker
+```bash
+# Test production build locally
+make docker-prod
+# or
+docker-compose up web-prod
+
+# Build production image
+make docker-build
+
+# Run production container
+make docker-run
+```
+
+### Available Docker Services
+- **web**: Django development server with hot reload
+- **web-prod**: Production-like environment with Gunicorn
+- **web-staging**: Staging environment configuration
+- **db**: PostgreSQL database
+- **redis**: Redis cache server
 
 ## 📁 Project Structure
 
 ```
 my-app/
-├── app/                    # Django application
-│   ├── settings.py         # Development settings
-│   ├── settings_prod.py    # Production settings
-│   ├── urls.py
-│   ├── wsgi.py
-│   └── asgi.py
-├── staticfiles/            # Collected static files
-├── .venv/                  # Virtual environment (created by uv)
-├── pyproject.toml          # Dependencies and tool configuration
-├── uv.lock                 # Locked dependencies
-├── Dockerfile              # Production container
-├── docker-compose.yml      # Multi-service development
-├── Makefile               # Development commands
-├── .flake8                # Linting configuration
-├── .pylintrc              # Pylint configuration
-└── .env.example           # Environment variables template
+├── app/                        # Django application
+│   ├── __init__.py
+│   ├── settings.py             # Development settings
+│   ├── settings_prod.py        # Production settings
+│   ├── urls.py                 # URL configuration
+│   ├── wsgi.py                 # WSGI entry point
+│   └── asgi.py                 # ASGI entry point
+├── tests/                      # Test suite
+│   ├── __init__.py
+│   └── test_basic.py          # Basic application tests
+├── staticfiles/                # Collected static files (auto-generated)
+├── .venv/                      # Virtual environment (UV managed)
+├── pyproject.toml              # Dependencies and tool configuration
+├── uv.lock                     # Locked dependencies
+├── pytest.ini                 # Test configuration
+├── Dockerfile                  # Production container
+├── docker-compose.yml          # Multi-environment setup
+├── Makefile                    # Development commands
+├── setup.sh                    # Project setup script
+├── .env.example               # Environment template
+├── .pre-commit-config.yaml    # Automated quality checks
+├── .flake8                    # Linting configuration
+├── .pylintrc                  # Pylint configuration (simplified)
+├── .gitignore                 # Git exclusions
+├── .dockerignore              # Docker build exclusions
+└── README.md                  # Project overview
 ```
 
-## 🔧 Django Management
+## 🔧 Django Management Commands
 
-### Database
+### Database Operations
 ```bash
-# Create migrations
+# Create and apply migrations
 make makemigrations
+make migrate
 
-# Apply migrations
+# Reset database (development only)
+rm db.sqlite3
 make migrate
 
 # Create superuser
 make createsuperuser
 
-# Open Django shell
+# Django shell with IPython
 make shell
 ```
 
@@ -168,6 +252,9 @@ make shell
 ```bash
 # Collect static files
 make collectstatic
+
+# Find static files
+uv run python manage.py findstatic admin/css/base.css
 ```
 
 ### Development Server
@@ -175,161 +262,338 @@ make collectstatic
 # Run development server
 make runserver
 
-# Or with uv directly
-uv run python manage.py runserver
+# Run with specific settings
+uv run python manage.py runserver --settings=app.settings_prod
+
+# Run on different port
+uv run python manage.py runserver 0.0.0.0:9000
+```
+
+## 🧪 Testing Framework
+
+### Running Tests
+```bash
+# Run all tests
+make test
+
+# Run with coverage
+make test-cov
+
+# Run specific test file
+uv run pytest tests/test_basic.py
+
+# Run with verbose output
+uv run pytest -v
+
+# Run and stop on first failure
+uv run pytest -x
+
+# Run tests matching pattern
+uv run pytest -k "test_user"
+```
+
+### Test Configuration
+- **Framework**: pytest with pytest-django
+- **Coverage**: Minimum 50% (configurable in pytest.ini)
+- **Location**: Tests in `tests/` directory
+- **Database**: Separate test database created automatically
+- **Fixtures**: Factory Boy for test data generation
+
+### Writing Tests
+```python
+# Example test structure
+import pytest
+from django.test import TestCase, Client
+from django.contrib.auth.models import User
+
+@pytest.mark.django_db
+class TestUserAuthentication(TestCase):
+    def setUp(self):
+        self.client = Client()
+
+    def test_user_login(self):
+        user = User.objects.create_user(
+            username='testuser',
+            password='testpass123'
+        )
+        response = self.client.login(
+            username='testuser',
+            password='testpass123'
+        )
+        self.assertTrue(response)
+```
+
+## 🌍 Environment Configuration
+
+### Development Environment (.env)
+```bash
+DEBUG=true
+DJANGO_SETTINGS_MODULE=app.settings
+SECRET_KEY=dev-secret-key-not-for-production
+ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+DJANGO_DEBUG_TOOLBAR=true
+```
+
+### Production Environment
+```bash
+DEBUG=false
+DJANGO_SETTINGS_MODULE=app.settings_prod
+SECRET_KEY=your-secure-production-key
+ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+```
+
+### Database Configuration (Optional)
+```bash
+# PostgreSQL
+DB_ENGINE=django.db.backends.postgresql
+DB_NAME=mydatabase
+DB_USER=myuser
+DB_PASSWORD=mypassword
+DB_HOST=localhost
+DB_PORT=5432
+
+# Or use DATABASE_URL
+DATABASE_URL=postgres://user:password@host:port/database
 ```
 
 ## 📊 Code Quality Standards
 
-### Formatting Rules
-- **Black**: Line length 88 characters
-- **isort**: Import sorting with Django-aware grouping
-- **Consistent**: Double quotes, trailing commas
+### Formatting Standards
+- **Line Length**: 88 characters (Black default)
+- **Quotes**: Double quotes preferred
+- **Import Sorting**: Django-aware grouping with isort
+- **Trailing Commas**: Enforced for multi-line structures
 
 ### Linting Rules
-- **flake8**: PEP 8 compliance with exceptions for Black
-- **pylint**: Code quality and Django best practices
-- **mypy**: Type checking with Django stubs
+- **PEP 8**: Enforced with reasonable exceptions
+- **Django Best Practices**: Configured for Django projects
+- **Type Hints**: Encouraged and checked with mypy
+- **Security**: Basic security checks included
 
-### Test Coverage
-- Minimum 80% coverage target
-- Exclude migrations, settings, and test files
-- HTML coverage reports in `htmlcov/`
+### Test Coverage Requirements
+- **Minimum Coverage**: 50% (adjustable in pytest.ini)
+- **Excluded Files**: Migrations, settings, venv directories
+- **Coverage Reports**: HTML and terminal output
+- **Location**: Coverage reports in `htmlcov/` directory
 
-## 🌍 Environment Configuration
+## 🚀 Production Deployment Workflow
 
-### Development (.env)
+### Pre-deployment Checklist
 ```bash
-DEBUG=true
-DJANGO_SETTINGS_MODULE=app.settings
-SECRET_KEY=your-dev-key
-ALLOWED_HOSTS=localhost,127.0.0.1
-```
-
-### Production
-```bash
-DEBUG=false
-DJANGO_SETTINGS_MODULE=app.settings_prod
-SECRET_KEY=your-production-key
-ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
-```
-
-## 🚀 Deployment Workflow
-
-### 1. Code Quality Check
-```bash
+# 1. Run all quality checks
 make check
-```
 
-### 2. Build Production Image
-```bash
+# 2. Ensure tests pass
+make test-cov
+
+# 3. Build production image
 make docker-build
-```
 
-### 3. Test Production Build
-```bash
+# 4. Test production build locally
 make docker-prod
+
+# 5. Verify static files and admin access
+curl http://localhost:8001/admin/
+curl http://localhost:8001/static/admin/css/base.css
 ```
 
-### 4. Deploy
+### Deployment Commands
 ```bash
-# Tag for registry
+# Build and tag for registry
+docker build -t my-django-app:latest .
 docker tag my-django-app:latest registry.example.com/my-django-app:latest
 
 # Push to registry
 docker push registry.example.com/my-django-app:latest
+
+# Deploy to production environment
+# (depends on your deployment platform)
 ```
 
 ## 🐛 Common Development Tasks
 
-### Adding a New Django App
+### Adding New Django App
 ```bash
+# Create new app
 uv run python manage.py startapp myapp
-# Add 'myapp' to INSTALLED_APPS in settings.py
+
+# Add to INSTALLED_APPS in settings.py
+# Create initial tests in tests/test_myapp.py
+# Add URL patterns if needed
 ```
 
-### Database Reset
+### Dependency Management
 ```bash
-rm db.sqlite3
+# Add new package
+uv add requests
+
+# Add development package
+uv add --group dev pytest-mock
+
+# Update specific package
+uv add django@5.2.2
+
+# Remove package
+uv remove package-name
+
+# Sync after changes
+uv sync
+```
+
+### Database Schema Changes
+```bash
+# Create migration
+make makemigrations
+
+# Apply migration
 make migrate
-make createsuperuser
+
+# Show migration status
+uv run python manage.py showmigrations
+
+# Reverse migration (careful!)
+uv run python manage.py migrate myapp 0001
 ```
 
-### Dependency Updates
+### Debugging and Development
 ```bash
-uv sync --upgrade
-uv lock
-```
-
-### Clean Development Environment
-```bash
-make clean
-```
-
-## 📝 Git Workflow
-
-### Pre-commit Checks
-```bash
-# Before committing, always run:
-make check
-
-# This runs:
-# - Code formatting (black, isort)
-# - Linting (flake8, pylint)
-# - Type checking (mypy)
-# - Tests (pytest)
-```
-
-### Recommended Commit Flow
-```bash
-# Make changes
-git add .
-
-# Run quality checks
-make check
-
-# Commit if all checks pass
-git commit -m "feat: add new feature"
-
-# Push
-git push
-```
-
-## 🔍 Debugging
-
-### Django Debug Toolbar (Development)
-- Automatically enabled in development
-- Available when DEBUG=True
-- Shows SQL queries, cache usage, templates
-
-### Container Debugging
-```bash
-# Enter running container
-docker exec -it <container-name> /bin/sh
-
-# View container logs
-docker logs <container-name>
-
-# Debug with development overrides
-docker-compose -f docker-compose.yml -f docker-compose.debug.yml up
-```
-
-### Python Debugging
-```bash
-# Use Django shell
+# Django shell with IPython
 make shell
 
-# IPython debugging
-uv run ipython
+# Run Django shell in container
+docker-compose exec web python manage.py shell
 
-# Run specific management command
-uv run python manage.py <command>
+# Debug with print statements
+# Use Django's built-in logging
+import logging
+logger = logging.getLogger(__name__)
+logger.info("Debug message")
+
+# Use Django Debug Toolbar (development only)
+# Automatically available at http://localhost:8000
 ```
 
-## 📚 Resources
+## 🔍 Troubleshooting
 
-- [Django Documentation](https://docs.djangoproject.com/)
+### Common Issues
+
+**Pre-commit hooks failing:**
+```bash
+# Run manual checks to see specific issues
+make check
+
+# Update pre-commit hooks
+make pre-commit-update
+
+# Skip hooks temporarily (not recommended)
+git commit --no-verify -m "emergency fix"
+```
+
+**Dependency conflicts:**
+```bash
+# Clear virtual environment and reinstall
+rm -rf .venv
+uv sync --group dev
+```
+
+**Docker build issues:**
+```bash
+# Clean Docker cache
+docker system prune -a
+make docker-build
+```
+
+**Database issues:**
+```bash
+# Reset database (development)
+rm db.sqlite3
+make migrate
+
+# Check database status
+uv run python manage.py check --database default
+```
+
+**Static files not loading:**
+```bash
+# Collect static files
+make collectstatic
+
+# Verify WhiteNoise configuration
+uv run python manage.py findstatic admin/css/base.css
+```
+
+### Performance Debugging
+
+**Slow tests:**
+```bash
+# Run with timing
+uv run pytest --durations=10
+
+# Run specific slow tests
+uv run pytest -m slow
+```
+
+**Memory usage:**
+```bash
+# Monitor in development
+pip install memory-profiler
+# Add @profile decorator to functions
+```
+
+## 📚 Development Resources
+
+### Documentation
+- [Django 5.2 Documentation](https://docs.djangoproject.com/en/5.2/)
 - [UV Package Manager](https://github.com/astral-sh/uv)
-- [Black Code Formatter](https://black.readthedocs.io/)
 - [pytest Documentation](https://docs.pytest.org/)
-- [Docker Documentation](https://docs.docker.com/)
+- [Black Code Formatter](https://black.readthedocs.io/)
+- [Pre-commit Framework](https://pre-commit.com/)
+
+### Useful Django Packages
+- **django-extensions**: Enhanced management commands
+- **django-debug-toolbar**: Development debugging
+- **factory-boy**: Test data generation
+- **django-environ**: Environment variable management
+- **django-cors-headers**: CORS handling for APIs
+
+### Code Quality Tools
+- **Black**: Uncompromising code formatter
+- **isort**: Import statement organizer
+- **flake8**: Linting and style checking
+- **mypy**: Static type checking
+- **pytest**: Testing framework
+- **pre-commit**: Git hook management
+
+## 🤝 Contributing Guidelines
+
+### Code Style
+- Follow PEP 8 (enforced by flake8)
+- Use Black formatting (enforced by pre-commit)
+- Add type hints where possible
+- Write docstrings for public functions
+- Keep functions small and focused
+
+### Testing Requirements
+- Write tests for new features
+- Maintain or improve test coverage
+- Use descriptive test names
+- Test both success and failure cases
+- Use factories for test data
+
+### Git Commit Messages
+```bash
+# Format: type(scope): description
+feat(auth): add user registration endpoint
+fix(models): resolve user profile cascade deletion
+docs(readme): update installation instructions
+test(views): add authentication test cases
+refactor(utils): simplify email validation logic
+```
+
+### Pull Request Process
+1. Create feature branch from main
+2. Implement changes with tests
+3. Ensure all pre-commit checks pass
+4. Run full test suite: `make test-cov`
+5. Update documentation if needed
+6. Submit pull request with clear description
