@@ -188,3 +188,4 @@ yarn-error.log*
 .coverage
 htmlcov/
 .coverage.*
+.coverage
