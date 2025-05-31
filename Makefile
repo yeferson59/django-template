@@ -1,4 +1,4 @@
-.PHONY: help install install-dev format lint test clean docker-build docker-run docker-dev
+.PHONY: help install install-dev format lint test clean docker-build docker-run docker-dev startapp
 
 # Default target
 help:
@@ -12,14 +12,25 @@ help:
 	@echo "  test-cov        Run tests with coverage report"
 	@echo "  clean           Clean cache and build files"
 	@echo "  migrate         Run Django migrations"
+	@echo "  makemigrations  Create new Django migrations"
 	@echo "  collectstatic   Collect static files"
+	@echo "  createsuperuser Create a Django superuser"
+	@echo "  runserver       Run the Django development server"
+	@echo "  shell           Open a Django shell"
+	@echo "  startapp        Create a new Django app (e.g., make startapp APP_NAME=my_app)"
 	@echo "  docker-build    Build Docker image"
 	@echo "  docker-run      Run Docker container"
 	@echo "  docker-dev      Run development environment with Docker Compose"
 	@echo "  docker-prod     Run production environment with Docker Compose"
+	@echo "  docker-stop     Stop Docker Compose services"
 	@echo "  pre-commit-install  Install pre-commit hooks"
 	@echo "  pre-commit-run      Run pre-commit on all files"
 	@echo "  pre-commit-update   Update pre-commit hooks"
+	@echo "  pre-commit-clean    Clean pre-commit cache"
+	@echo "  check           Run format, lint, type-check, and test"
+	@echo "  dev-setup       Setup development environment"
+	@echo "  prod-setup      Setup production environment"
+
 
 # Dependencies
 install:
@@ -67,6 +78,13 @@ runserver:
 
 shell:
 	uv run python manage.py shell
+
+startapp:
+	@if [ -z "$(APP_NAME)" ]; then \
+		echo "Usage: make startapp APP_NAME=<app_name>"; \
+		exit 1; \
+	fi
+	uv run python manage.py startapp $(APP_NAME)
 
 # Cleaning
 clean:
