@@ -87,3 +87,25 @@ class SetupProjectCommandTestCase(TestCase):
             ) as mock_create:
                 command.create_superuser(options)
                 mock_create.assert_not_called()
+
+    def test_setup_project_command_with_create_superuser_flag(self):
+        """Test setup_project command with --create-superuser flag."""
+        out = StringIO()
+
+        # Mock the create_superuser method to avoid actual user creation
+        with patch(
+            "app.management.commands.setup_project.Command.create_superuser"
+        ) as mock_create:
+            call_command(
+                "setup_project",
+                "--create-superuser",
+                stdout=out,
+            )
+
+            # Verify that create_superuser was called
+            mock_create.assert_called_once()
+
+            # Check command output
+            output = out.getvalue()
+            self.assertIn("Setting up Django project", output)
+            self.assertIn("Project setup completed", output)
