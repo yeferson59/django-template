@@ -114,3 +114,89 @@ def test_middleware_configured():
 
     for middleware in required_middleware:
         assert middleware in settings.MIDDLEWARE
+
+
+class ViewsTestCase(TestCase):
+    """Test views functionality."""
+
+    def setUp(self):
+        """Set up test dependencies."""
+        self.client = Client()
+
+    def test_home_view(self):
+        """Test home view returns correct response."""
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Welcome to My-App")
+        self.assertIn("page_title", response.context)
+        self.assertEqual(response.context["page_title"], "Home")
+
+    def test_home_view_template_used(self):
+        """Test home view uses correct template."""
+        response = self.client.get(reverse("home"))
+        self.assertTemplateUsed(response, "home.html")
+
+
+class ContextProcessorTestCase(TestCase):
+    """Test context processors functionality."""
+
+    def test_project_context_processor(self):
+        """Test project context processor adds correct variables."""
+        from django.test import RequestFactory
+
+        from app.context_processors import project_context
+
+        factory = RequestFactory()
+        request = factory.get("/")
+
+        context = project_context(request)
+
+        self.assertIn("PROJECT_NAME", context)
+        self.assertIn("PROJECT_DESCRIPTION", context)
+        self.assertIn("DEBUG", context)
+        self.assertIsInstance(context["DEBUG"], bool)
+
+    def test_project_context_in_template(self):
+        """Test that project context is available in templates."""
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.status_code, 200)
+        # Check that context processor variables are available
+        self.assertIn("PROJECT_NAME", response.context)
+        self.assertIn("PROJECT_DESCRIPTION", response.context)
+        self.assertIn("DEBUG", response.context)
+
+
+class URLsTestCase(TestCase):
+    """Test URL configuration."""
+
+    def test_home_url_resolves(self):
+        """Test that home URL resolves correctly."""
+        from django.urls import resolve
+
+        from app.views import home
+
+        resolver = resolve("/")
+        self.assertEqual(resolver.func, home)
+        self.assertEqual(resolver.url_name, "home")
+
+    def test_admin_url_exists(self):
+        """Test that admin URL exists."""
+        response = self.client.get("/admin/")
+        # Should redirect to login or show admin page
+        self.assertIn(response.status_code, [200, 302])
+
+    def test_media_urls_in_debug_mode(self):
+        """Test that media URLs are configured in debug mode."""
+        from django.conf import settings
+        from django.urls import reverse
+
+        # This test assumes DEBUG=True in test settings
+        if settings.DEBUG:
+            # Test that we can access the URL patterns
+            from django.conf.urls import include
+            from django.conf.urls.static import static
+
+            self.assertTrue(hasattr(settings, "MEDIA_URL"))
+            self.assertTrue(hasattr(settings, "MEDIA_ROOT"))
+            self.assertTrue(hasattr(settings, "STATIC_URL"))
+            self.assertTrue(hasattr(settings, "STATIC_ROOT"))

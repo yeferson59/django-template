@@ -22,10 +22,6 @@ uv sync --group dev
 echo "🔧 Installing pre-commit hooks..."
 uv run pre-commit install
 
-# Setup Django
-echo "🗄️  Setting up Django database..."
-uv run python manage.py migrate
-
 # Create .env file if it doesn't exist
 if [ ! -f .env ]; then
     echo "📝 Creating .env file from template..."
@@ -33,9 +29,18 @@ if [ ! -f .env ]; then
     echo "✏️  Please edit .env file with your settings"
 fi
 
-# Collect static files
-echo "📁 Collecting static files..."
-uv run python manage.py collectstatic --noinput
+# Setup Django project structure and database
+echo "🗄️  Setting up Django project..."
+uv run python manage.py setup_project
+uv run python manage.py migrate
+
+# Only collect static files in production
+if [ "${DJANGO_SETTINGS_MODULE}" = "app.settings_prod" ] || [ "${DEBUG}" = "false" ]; then
+    echo "📁 Collecting static files (production mode)..."
+    uv run python manage.py collectstatic --noinput
+else
+    echo "📁 Skipping collectstatic (development mode - static files served directly)"
+fi
 
 # Run initial code quality checks
 echo "🔍 Running initial code quality checks..."

@@ -1,0 +1,16 @@
+# Production dependencies - Updated June 2025
+-r base.txt
+
+# Database
+psycopg2-binary>=2.9.10
+dj-database-url>=2.3.0
+
+# Monitoring
+sentry-sdk[django]>=2.20.0
+
+# Performance
+redis>=5.2.1
+django-redis>=5.4.0
+
+# Security
+django-cors-headers>=4.3.0
