@@ -116,10 +116,12 @@ class LoggingConfigurationTestCase(TestCase):
 
         importlib.reload(settings)
 
+        # File handler should not be present in CI
+        from typing import Any, Dict, cast
+
         from app.settings import LOGGING
 
-        # File handler should not be present in CI
-        handlers = LOGGING.get("handlers", {})  # type: ignore
+        handlers = cast(Dict[str, Any], LOGGING.get("handlers", {}))
         self.assertNotIn("file", handlers)
 
     @patch.dict(os.environ, {"GITHUB_ACTIONS": "true"})
@@ -132,10 +134,12 @@ class LoggingConfigurationTestCase(TestCase):
 
         importlib.reload(settings)
 
+        # File handler should not be present in GitHub Actions
+        from typing import Any, Dict, cast
+
         from app.settings import LOGGING
 
-        # File handler should not be present in GitHub Actions
-        handlers = LOGGING.get("handlers", {})  # type: ignore
+        handlers = cast(Dict[str, Any], LOGGING.get("handlers", {}))
         self.assertNotIn("file", handlers)
 
     def test_logging_config_in_development(self):
@@ -149,13 +153,15 @@ class LoggingConfigurationTestCase(TestCase):
 
             importlib.reload(settings)
 
+            # File handler should be present in development
+            from typing import Any, Dict, List, cast
+
             from app.settings import LOGGING
 
-            # File handler should be present in development
-            handlers = LOGGING.get("handlers", {})  # type: ignore
-            loggers = LOGGING.get("loggers", {})  # type: ignore
-            app_logger = loggers.get("app", {})  # type: ignore
-            app_handlers = app_logger.get("handlers", [])  # type: ignore
+            handlers = cast(Dict[str, Any], LOGGING.get("handlers", {}))
+            loggers = cast(Dict[str, Any], LOGGING.get("loggers", {}))
+            app_logger = cast(Dict[str, Any], loggers.get("app", {}))
+            app_handlers = cast(List[str], app_logger.get("handlers", []))
 
             self.assertIn("file", handlers)
             self.assertIn("file", app_handlers)
