@@ -130,8 +130,6 @@ dmypy.json
 
 # Django static files
 staticfiles/
-static/
-media/
 
 # Django migrations (uncomment if you want to ignore migrations)
 # */migrations/*
