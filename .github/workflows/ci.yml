@@ -13,6 +13,10 @@ jobs:
       matrix:
         python-version: ["3.13"]
 
+    env:
+      CI: true
+      GITHUB_ACTIONS: true
+
     services:
       postgres:
         image: postgres:15
@@ -45,6 +49,8 @@ jobs:
         cp .env.example .env
         echo "SECRET_KEY=test-secret-key-for-ci" >> .env
         echo "DEBUG=false" >> .env
+        echo "CI=true" >> .env
+        echo "GITHUB_ACTIONS=true" >> .env
         echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/test_db" >> .env
 
     - name: Run Django system checks

@@ -166,6 +166,10 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Create logs directory if it doesn't exist
+LOGS_DIR = BASE_DIR / "logs"
+LOGS_DIR.mkdir(exist_ok=True)
+
 # Logging configuration
 LOGGING = {
     "version": 1,
@@ -185,11 +189,6 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "simple",
         },
-        "file": {
-            "class": "logging.FileHandler",
-            "filename": BASE_DIR / "logs" / "django.log",
-            "formatter": "verbose",
-        },
     },
     "root": {
         "handlers": ["console"],
@@ -202,12 +201,26 @@ LOGGING = {
             "propagate": False,
         },
         "app": {
-            "handlers": ["console", "file"],
+            "handlers": ["console"],
             "level": "DEBUG",
             "propagate": False,
         },
     },
 }
+
+# Add file logging only in non-CI environments
+if not os.getenv("CI") and not os.getenv("GITHUB_ACTIONS"):
+    # Add file handler configuration
+    file_handler = {
+        "class": "logging.FileHandler",
+        "filename": str(LOGS_DIR / "django.log"),
+        "formatter": "verbose",
+    }
+    LOGGING["handlers"]["file"] = file_handler  # type: ignore
+    # Add file handler to app logger
+    app_handlers = LOGGING["loggers"]["app"]["handlers"]  # type: ignore
+    if isinstance(app_handlers, list):
+        app_handlers.append("file")
 
 # Cache configuration
 CACHES = {
