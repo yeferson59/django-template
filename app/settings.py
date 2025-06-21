@@ -14,10 +14,14 @@ import os
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
+# Load environment variables from .env file (optional for production)
+try:
+    from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+    load_dotenv()
+except ImportError:
+    # dotenv is not available in production, rely on system environment variables
+    pass
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

@@ -1,0 +1,48 @@
+# Ultra-optimized multi-stage build for Django app
+FROM python:3.13.3-slim-bookworm AS builder
+
+# Install build dependencies in a single layer
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Install uv for faster dependency resolution
+RUN pip install --no-cache-dir uv
+
+WORKDIR /app
+
+# Copy dependency files
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies with optimizations
+RUN uv sync --frozen --group prod --compile-bytecode --no-dev
+
+# Runtime stage using distroless-like approach
+FROM gcr.io/distroless/python3-debian12:latest
+
+# Copy Python environment from builder
+COPY --from=builder /app/.venv /app/.venv
+
+# Copy only essential application files
+COPY --chown=nonroot:nonroot manage.py /app/
+COPY --chown=nonroot:nonroot app/ /app/app/
+
+# Set environment variables
+ENV VIRTUAL_ENV=/app/.venv \
+    PATH="/app/.venv/bin:$PATH" \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    DJANGO_SETTINGS_MODULE=app.settings_prod \
+    PYTHONPATH=/app
+
+WORKDIR /app
+
+# Use non-root user
+USER nonroot
+
+EXPOSE 8000
+
+# Use gunicorn directly
+ENTRYPOINT ["python", "-m", "gunicorn", "app.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--preload"]
